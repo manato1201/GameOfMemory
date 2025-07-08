@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using SpeedControl;
 using Unity.VisualScripting;
+using DB;
+using System.Collections.Generic;
 //using SpeedControl;
 
 namespace Characters
@@ -30,13 +32,28 @@ namespace Characters
         private bool canVerticalMove;
         private bool canScale;
 
+        private SpriteRenderer spriteRenderer;
+        // 画像切り替え用
+        private DB_Image imageDB;
+        private Dictionary<string, Sprite[]> imageDict;
+
         public bool UseSkillControlledSpeed { get; set; } = true;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
+            spriteRenderer = GetComponent<SpriteRenderer>();
             speed.OnValueChange += OnSpeedChanged;
             BattleSpeedController.Instance.Subscribe(speed);
+
+            // ScriptableObject（DB_Image）からデータ取得
+            imageDB = DB_Image.Entity;
+            imageDict = new Dictionary<string, Sprite[]>();
+            foreach (var item in imageDB.ItemSprites)
+            {
+                imageDict[item.Name] = item.Sprite;
+            }
+
             inputActions = new GameInputs();
             inputActions.Player.Move.performed += OnMove;
             inputActions.Player.Move.canceled += OnMove;
@@ -65,23 +82,72 @@ namespace Characters
         {
             Debug.Log("Move");
             moveInput = context.ReadValue<Vector2>();
+            if (Mathf.Abs(moveInput.x) > 0.01f)
+            {
+                SetSpriteByName("Move", 1); // 画像DB内「Move」のSprite配列の0番をセット
+                SetSpriteByName("Move", 2);
+            }
+            else if (canVerticalMove && Mathf.Abs(moveInput.y) > 0.01f)
+            {
+                SetSpriteByName("Climb", 0);
+                SetSpriteByName("Climb", 1);
+            }
+            else
+            {
+                SetSpriteByName("Move", 0);
+            }
         }
         public void OnJump(InputAction.CallbackContext context)
         {
             Debug.Log("Jump");
             if (context.started)
+            {
                 jumpRequested = true;
+                SetSpriteByName("Jump", 0);
+            }
+                
         }
         public void OnSprint(InputAction.CallbackContext context)
         {
             Debug.Log("Sprint");
             isSprinting = context.ReadValueAsButton();
+            SetSpriteByName("Move", 1); // 画像DB内「Move」のSprite配列の0番をセット
+            SetSpriteByName("Move", 2);
         }
         public void OnAttack(InputAction.CallbackContext context)
         {
             Debug.Log("Attack");
             if (context.started)
+            {
                 Attack();
+            }
+                
+        }
+
+
+        private void SetSpriteByName(string name, int idx = 0)
+        {
+            if (imageDict == null)
+            {
+                Debug.LogWarning("imageDictがnullです！");
+                return;
+            }
+            if (spriteRenderer == null)
+            {
+                Debug.LogWarning("spriteRendererがnullです！");
+                return;
+            }
+            if (imageDict.TryGetValue(name, out var sprites))
+            {
+                if (sprites != null && sprites.Length > idx)
+                {
+                    spriteRenderer.sprite = sprites[idx];
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Sprite名 '{name}' がDB_Imageに登録されていません");
+            }
         }
 
         private void FixedUpdate()
