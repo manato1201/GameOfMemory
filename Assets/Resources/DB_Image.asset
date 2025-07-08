@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f94662aeb023f41ad2145a58e97522, type: 3}
+  m_Name: DB_Image
+  m_EditorClassIdentifier: 
+  ItemSprites:
+  - Name: Move
+    Sprite:
+    - {fileID: 3286163911610860551, guid: 953af972ef8fb2c408c682b4266810c6, type: 3}
+    - {fileID: 3286163911610860551, guid: 7fc5014a5f19d6942bbe70e3f72f5f06, type: 3}
+    - {fileID: 3286163911610860551, guid: 2d2c2abe99c51ca4fa0367e7d92f4dd7, type: 3}
+  - Name: Jump
+    Sprite:
+    - {fileID: 3286163911610860551, guid: 953af972ef8fb2c408c682b4266810c6, type: 3}
+    - {fileID: 3286163911610860551, guid: 640dc13e8ffd00241aabd9a45d46e2e2, type: 3}
+  - Name: Climb
+    Sprite:
+    - {fileID: 3286163911610860551, guid: 26d8425bdf268fa49b1a09ba58bfcb59, type: 3}
+    - {fileID: 3286163911610860551, guid: a7f2de46c67f51047a2b69c321a7e603, type: 3}
+  - Name: GimmickSwitch
+    Sprite:
+    - {fileID: 3286163911610860551, guid: 2d02656a242026f49b2845b52f411900, type: 3}
+    - {fileID: 3286163911610860551, guid: a3b6cdbd62f9cd4439232808d554cb72, type: 3}
+    - {fileID: 3286163911610860551, guid: 4a528b7c1a04b1a408436d6993e61558, type: 3}
+    - {fileID: 3286163911610860551, guid: 89e7843a4adcc9149ab734ed93f03b19, type: 3}
+    - {fileID: 3286163911610860551, guid: 19acdd6e6c2e2154f8ae4cf623bc8451, type: 3}
+    - {fileID: 3286163911610860551, guid: ed701b32f287f9046a590ef5deec7913, type: 3}
+    - {fileID: 3286163911610860551, guid: 6f7adde5ff5a9d24aaacd5276a9a62a0, type: 3}
+    - {fileID: 3286163911610860551, guid: 5f6b14a1c41bca646b833918c38be343, type: 3}
+    - {fileID: 3286163911610860551, guid: d7b8fdfd0e0c90c4fa4ef70e5a7352b8, type: 3}
+    - {fileID: 3286163911610860551, guid: 3f949836ec778b04d995379f5bdb73ed, type: 3}
+    - {fileID: 3286163911610860551, guid: 9a6693e25dc6f114f8a5f3dc0c8e2161, type: 3}
+  - Name: GimmickStage
+    Sprite:
+    - {fileID: 3286163911610860551, guid: b4149ecf80c020f49b985161e55f4e7a, type: 3}
+    - {fileID: 3286163911610860551, guid: 783a63f7347f4c3428a15ac94bb5c499, type: 3}
+    - {fileID: 3286163911610860551, guid: 14bc7efea51390a4488e32ddedd19e66, type: 3}
+    - {fileID: 3286163911610860551, guid: 0e59457e5938f5a459edc480970d263c, type: 3}
+    - {fileID: 3286163911610860551, guid: f1b51253de2944e4b9574122ef484def, type: 3}
+    - {fileID: 3286163911610860551, guid: c04698e8df110b644ba52adf132264bf, type: 3}
+    - {fileID: 3286163911610860551, guid: 64aa22a47bf73db4d81c7d38e5342e10, type: 3}
+    - {fileID: 3286163911610860551, guid: 62196d8534f5d1d4db32c05a6a441c5e, type: 3}
+  - Name: Enemy
+    Sprite:
+    - {fileID: 3286163911610860551, guid: e6e9c5a44cf2b1448a308be8f002975a, type: 3}
+    - {fileID: 3286163911610860551, guid: eaa1c39d1bdf7714c908b9c47a59b9ff, type: 3}
+    - {fileID: 3286163911610860551, guid: 1c83937f66dff344d9f1c65eb3be7ad2, type: 3}
+    - {fileID: 3286163911610860551, guid: 39cbea52dc8c2a049a8e32a029d8f8f4, type: 3}
+    - {fileID: 3286163911610860551, guid: e0c9cc1cd8cd7364e8b14d358114f428, type: 3}
+    - {fileID: 3286163911610860551, guid: b6cce21359465cb47972e1d16e186b36, type: 3}
+    - {fileID: 3286163911610860551, guid: f0c9409c712061a459c25536d272e9e0, type: 3}
+    - {fileID: 3286163911610860551, guid: 3d7ac9d75c6e8bd40b97c6be3936999e, type: 3}
+    - {fileID: 3286163911610860551, guid: 4462da4fa4981c8428380507a688bfee, type: 3}
+    - {fileID: 3286163911610860551, guid: f6fc7ca3efa0f024693f326aaaf21760, type: 3}
+    - {fileID: 3286163911610860551, guid: 2b5a292a4132184458012bd427cee751, type: 3}
+    - {fileID: 3286163911610860551, guid: f9df3b2d7817e2949a7d561d1ec3d185, type: 3}
+    - {fileID: 3286163911610860551, guid: 0901a8e828b514c48ba1ec952a68f762, type: 3}
+    - {fileID: 3286163911610860551, guid: ef0f4336139d2a24fac1b95898d47686, type: 3}
+    - {fileID: 3286163911610860551, guid: b32234b66efcd4e45bbaf5a5364030ff, type: 3}
