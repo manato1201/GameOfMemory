@@ -8,6 +8,11 @@ TagManager:
   - VerticalArea
   - ScaleArea
   - Recognition
+  - Explanation
+  - Dead
+  - Recovery
+  - Goal
+  - Key
   layers:
   - Default
   - TransparentFX
