@@ -5,6 +5,9 @@ using SpeedControl;
 using Unity.VisualScripting;
 using DB;
 using System.Collections.Generic;
+using UnityEngine.UI; // Image用
+using UnityEngine.SceneManagement; // シーンリロード用
+using System.Linq;
 //using SpeedControl;
 
 namespace Characters
@@ -13,7 +16,7 @@ namespace Characters
     public class Player2DController : MonoBehaviour, IFilterableSpeed
     {
 
-        
+
         [Header("移動パラメータ")]
         [SerializeField] private float movePower = 5f;
         [SerializeField] private float dashMultiplier = 2f;
@@ -22,6 +25,20 @@ namespace Characters
         [SerializeField] private float scaleStep = 0.2f;
         [SerializeField] private float minScale = 0.5f;
         [SerializeField] private float maxScale = 2f;
+        [Header("ジャンプ回数")]
+        [SerializeField] private int maxJumpCount = 2;
+        // 認知回数
+        //[Header("認知回数")]
+        //[SerializeField] private int maxRecognitionCount = 3; // 例：3回まで
+        [Header("認知回数UI（Image3つ）")]
+        [SerializeField] private List<Image> recognitionImages; // Inspectorで3つ指定
+        [Header("認知エリア最大ON数")]
+        [SerializeField] private int maxRecognitionTargets = 3;
+
+        private int recognitionCount;
+        private List<GameObject> recognizedObjects = new List<GameObject>();
+        // 今入っている認知エリア
+        private List<Collider2D> enteredRecognitionAreas = new List<Collider2D>();
 
         private Rigidbody2D rb;
         private Speed speed = new Speed();
@@ -32,10 +49,18 @@ namespace Characters
         private bool canVerticalMove;
         private bool canScale;
 
+        private int jumpCount;
         private SpriteRenderer spriteRenderer;
-        // 画像切り替え用
         private DB_Image imageDB;
         private Dictionary<string, Sprite[]> imageDict;
+
+        // 画像交互切替用インデックス
+        private int moveSpriteIndex = 0;
+        private int jumpSpriteIndex = 0;
+        private int sprintSpriteIndex = 0;
+
+        // recognition用
+       // private HashSet<GameObject> recognitionObjects = new HashSet<GameObject>();
 
         public bool UseSkillControlledSpeed { get; set; } = true;
 
@@ -43,8 +68,18 @@ namespace Characters
         {
             rb = GetComponent<Rigidbody2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
+            recognitionCount = recognitionImages.Count; // 通常3
+            ResetRecognitionUI();
             speed.OnValueChange += OnSpeedChanged;
             BattleSpeedController.Instance.Subscribe(speed);
+
+
+            var uiRoot = GameObject.Find("RecognitionUI");
+            if (uiRoot != null)
+            {
+                recognitionImages = uiRoot.GetComponentsInChildren<Image>(true).ToList();
+            }
+
 
             // ScriptableObject（DB_Image）からデータ取得
             imageDB = DB_Image.Entity;
@@ -80,84 +115,95 @@ namespace Characters
         // InputSystemのコールバック
         public void OnMove(InputAction.CallbackContext context)
         {
-            Debug.Log("Move");
             moveInput = context.ReadValue<Vector2>();
+
             if (Mathf.Abs(moveInput.x) > 0.01f)
             {
-                SetSpriteByName("Move", 1); // 画像DB内「Move」のSprite配列の0番をセット
-                SetSpriteByName("Move", 2);
+                // Move画像を交互に切り替え
+                int spriteCount = imageDict.ContainsKey("Move") ? imageDict["Move"].Length : 1;
+                SetSpriteByName("Move", moveSpriteIndex % spriteCount);
+                moveSpriteIndex++;
             }
             else if (canVerticalMove && Mathf.Abs(moveInput.y) > 0.01f)
             {
-                SetSpriteByName("Climb", 0);
-                SetSpriteByName("Climb", 1);
+                // Move画像を交互に切り替え
+                int spriteCount = imageDict.ContainsKey("Climb") ? imageDict["Climb"].Length : 1;
+                SetSpriteByName("Climb", moveSpriteIndex % spriteCount);
+                moveSpriteIndex++;
             }
-            else
-            {
-                SetSpriteByName("Move", 0);
-            }
+            
         }
         public void OnJump(InputAction.CallbackContext context)
         {
-            Debug.Log("Jump");
             if (context.started)
             {
-                jumpRequested = true;
-                SetSpriteByName("Jump", 0);
+                // ジャンプ回数制限
+                if (jumpCount > 0)
+                {
+                    jumpRequested = true;
+                    jumpCount--;
+                    // Jump画像を交互に切り替え
+                    int spriteCount = imageDict.ContainsKey("Jump") ? imageDict["Jump"].Length : 1;
+                    SetSpriteByName("Jump", jumpSpriteIndex % spriteCount);
+                    jumpSpriteIndex++;
+                }
             }
-                
         }
         public void OnSprint(InputAction.CallbackContext context)
         {
-            Debug.Log("Sprint");
             isSprinting = context.ReadValueAsButton();
-            SetSpriteByName("Move", 1); // 画像DB内「Move」のSprite配列の0番をセット
-            SetSpriteByName("Move", 2);
+            // Sprint画像を交互に切り替え
+            int spriteCount = imageDict.ContainsKey("Sprint") ? imageDict["Sprint"].Length : 1;
+            SetSpriteByName("Sprint", sprintSpriteIndex % spriteCount);
+            sprintSpriteIndex++;
         }
         public void OnAttack(InputAction.CallbackContext context)
         {
-            Debug.Log("Attack");
-            if (context.started)
+            if (context.started && enteredRecognitionAreas.Count > 0 && recognitionCount > -1)
             {
-                Attack();
+                // 今入っている全ての認知エリアを順にチェック（重なり複数対応）
+                foreach (var area in enteredRecognitionAreas)
+                {
+                    int recognizedThisArea = 0;
+                    foreach (Transform child in area.transform)
+                    {
+                        if (!child.gameObject.activeSelf && recognizedThisArea < maxRecognitionTargets && recognitionCount > -1)
+                        {
+                            child.gameObject.SetActive(true);
+                            recognizedObjects.Add(child.gameObject);
+                            UpdateRecognitionUI();
+                            recognizedThisArea++;
+                            // 1回のAttackで1つだけ認知したい場合はbreak;
+                            break;
+                        }
+                    }
+                    if (recognizedThisArea > 0) break; // 1回で複数エリアは認知しない
+                }
             }
-                
         }
+
+        
 
 
         private void SetSpriteByName(string name, int idx = 0)
         {
-            if (imageDict == null)
-            {
-                Debug.LogWarning("imageDictがnullです！");
-                return;
-            }
-            if (spriteRenderer == null)
-            {
-                Debug.LogWarning("spriteRendererがnullです！");
-                return;
-            }
+            if (imageDict == null) return;
+            if (spriteRenderer == null) return;
             if (imageDict.TryGetValue(name, out var sprites))
             {
-                if (sprites != null && sprites.Length > idx)
+                if (sprites != null && sprites.Length > 0 && idx < sprites.Length)
                 {
                     spriteRenderer.sprite = sprites[idx];
                 }
-            }
-            else
-            {
-                Debug.LogWarning($"Sprite名 '{name}' がDB_Imageに登録されていません");
             }
         }
 
         private void FixedUpdate()
         {
             float appliedPower = movePower * (isSprinting ? dashMultiplier : 1f) * speed.CurrentSpeed;
-
             float vx = moveInput.x * appliedPower;
             float vy = rb.linearVelocity.y;
 
-            // 優先度：縦移動＞拡縮＞通常
             if (canVerticalMove)
             {
                 vy = moveInput.y * appliedPower;
@@ -168,7 +214,6 @@ namespace Characters
                     ScaleCharacter(true);
                 else if (moveInput.y < -0.2f)
                     ScaleCharacter(false);
-                // Y方向移動は変えない
             }
 
             rb.linearVelocity = new Vector2(vx, vy);
@@ -202,19 +247,106 @@ namespace Characters
             Debug.Log("Attack!");
         }
 
+        // UIの色を更新（認知回数が減るたびに左から黒く）
+        private void UpdateRecognitionUI()
+        {
+            int idx = recognitionImages.Count - recognitionCount;
+            if (idx >= 0 && idx < recognitionImages.Count)
+            {
+                if (recognitionImages[idx] != null)
+                {
+                    recognitionImages[idx].color = Color.black;
+                }
+                
+            }
+            recognitionCount--;
+
+            // 認知回数0でリセット
+            if (recognitionCount <= -1)
+            {
+                Invoke(nameof(ResetRecognitionsAndReload), 0.5f);
+            }
+        }
+
+        private void ResetRecognitionUI()
+        {
+            foreach (var img in recognitionImages)
+            {
+                if (img != null) img.color = Color.white;
+            }
+        }
+
+        private void ResetRecognitionsAndReload()
+        {
+            // 全てオフに戻す
+            foreach (var obj in recognizedObjects)
+            {
+                if (obj != null) obj.SetActive(false);
+            }
+            recognizedObjects.Clear();
+            recognitionCount = recognitionImages.Count;
+            ResetRecognitionUI();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
         private void OnTriggerEnter2D(Collider2D other)
         {
+
+            if (other.CompareTag("Recognition"))
+            {
+                if (!enteredRecognitionAreas.Contains(other))
+                {
+                    enteredRecognitionAreas.Add(other);
+                }
+            }
+
+
             if (other.CompareTag("VerticalArea"))
+            {
                 canVerticalMove = true;
+                Debug.Log(canVerticalMove);
+
+            }
+                
             if (other.CompareTag("ScaleArea"))
+            {
                 canScale = true;
+                Debug.Log(canScale);
+            }
+                
+
+           
         }
         private void OnTriggerExit2D(Collider2D other)
         {
             if (other.CompareTag("VerticalArea"))
+            {
                 canVerticalMove = false;
+                Debug.Log(canVerticalMove);
+            }
+                
             if (other.CompareTag("ScaleArea"))
+            {
                 canScale = false;
+                Debug.Log(canScale);
+            }
+
+            if (other.CompareTag("Recognition"))
+            {
+                enteredRecognitionAreas.Remove(other);
+            }
+
+
+            
+        }
+
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+            // 地面タグ（またはLayerなどで地面判定）でジャンプ回数リセット
+            if (collision.collider.CompareTag("Ground"))
+            {
+                jumpCount = maxJumpCount;
+            }
         }
 
         private void OnSpeedChanged(float newSpeed)
@@ -222,42 +354,42 @@ namespace Characters
             // 速度変化時に即時反映したいロジックがあればここに
         }
     }
+}
 
-    [RequireComponent(typeof(Rigidbody2D))]
-    public class Enemy2DController : MonoBehaviour, IFilterableSpeed
+[RequireComponent(typeof(Rigidbody2D))]
+public class Enemy2DController : MonoBehaviour, IFilterableSpeed
+{
+    [SerializeField] private float movePower = 3f;
+    [SerializeField] private Transform target; // 追いかけたい対象（プレイヤーなど）
+
+    private Rigidbody2D rb;
+    private Speed speed = new Speed();
+
+    public bool UseSkillControlledSpeed { get; set; } = true;
+
+    private void Awake()
     {
-        [SerializeField] private float movePower = 3f;
-        [SerializeField] private Transform target; // 追いかけたい対象（プレイヤーなど）
+        rb = GetComponent<Rigidbody2D>();
+        speed.OnValueChange += OnSpeedChanged;
+        BattleSpeedController.Instance.Subscribe(speed);
+    }
 
-        private Rigidbody2D rb;
-        private Speed speed = new Speed();
+    private void OnDestroy()
+    {
+        BattleSpeedController.Instance.Unsubscribe(speed);
+        speed.OnValueChange -= OnSpeedChanged;
+    }
 
-        public bool UseSkillControlledSpeed { get; set; } = true;
+    private void FixedUpdate()
+    {
+        if (target == null) return;
 
-        private void Awake()
-        {
-            rb = GetComponent<Rigidbody2D>();
-            speed.OnValueChange += OnSpeedChanged;
-            BattleSpeedController.Instance.Subscribe(speed);
-        }
+        Vector2 direction = ((Vector2)target.position - rb.position).normalized;
+        rb.linearVelocity = direction * movePower * speed.CurrentSpeed;
+    }
 
-        private void OnDestroy()
-        {
-            BattleSpeedController.Instance.Unsubscribe(speed);
-            speed.OnValueChange -= OnSpeedChanged;
-        }
-
-        private void FixedUpdate()
-        {
-            if (target == null) return;
-
-            Vector2 direction = ((Vector2)target.position - rb.position).normalized;
-            rb.linearVelocity = direction * movePower * speed.CurrentSpeed;
-        }
-
-        private void OnSpeedChanged(float newSpeed)
-        {
-            // 速度変化時に即時反映したいロジックがあればここに
-        }
+    private void OnSpeedChanged(float newSpeed)
+    {
+        // 速度変化時に即時反映したいロジックがあればここに
     }
 }

@@ -44,7 +44,7 @@ namespace SpeedControl
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
         }
 
         /// <summary>Speedの購読を開始</summary>

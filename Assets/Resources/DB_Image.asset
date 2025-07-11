@@ -20,7 +20,6 @@ MonoBehaviour:
     - {fileID: 3286163911610860551, guid: 2d2c2abe99c51ca4fa0367e7d92f4dd7, type: 3}
   - Name: Jump
     Sprite:
-    - {fileID: 3286163911610860551, guid: 953af972ef8fb2c408c682b4266810c6, type: 3}
     - {fileID: 3286163911610860551, guid: 640dc13e8ffd00241aabd9a45d46e2e2, type: 3}
   - Name: Climb
     Sprite:
