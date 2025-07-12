@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using UnityEngine.UI; // Image用
 using UnityEngine.SceneManagement; // シーンリロード用
 using System.Linq;
+using TMPro;
 //using SpeedControl;
 
 namespace Characters
@@ -35,10 +36,25 @@ namespace Characters
         [Header("認知エリア最大ON数")]
         [SerializeField] private int maxRecognitionTargets = 3;
 
+        [Header("説明UI（複数）")]
+        [SerializeField] private List<GameObject> explanationUIs; // Inspectorで説明UI複数セット
+        [Header("ゴールUI")]
+        [SerializeField] private GameObject goalUI;
+        [Header("鍵UI")]
+        [SerializeField] private TMP_Text keyCountText; // InspectorでTextMeshProを指定
+
         private int recognitionCount;
         private List<GameObject> recognizedObjects = new List<GameObject>();
         // 今入っている認知エリア
         private List<Collider2D> enteredRecognitionAreas = new List<Collider2D>();
+        // 説明エリア内に入っている説明UIのリスト
+        private HashSet<GameObject> shownExplanationUIs = new HashSet<GameObject>();
+        // 説明エリア
+        private List<GameObject> enteredExplanationAreas = new List<GameObject>();
+
+        // その他管理
+        private bool isGoal = false; // ゴール状態
+        private int keyCount = 0; // 鍵数
 
         private Rigidbody2D rb;
         private Speed speed = new Speed();
@@ -72,7 +88,12 @@ namespace Characters
             ResetRecognitionUI();
             speed.OnValueChange += OnSpeedChanged;
             BattleSpeedController.Instance.Subscribe(speed);
+            UpdateKeyCountUI();
 
+            if (goalUI != null)
+            {
+                goalUI.SetActive(false);
+            }
 
             var uiRoot = GameObject.Find("RecognitionUI");
             if (uiRoot != null)
@@ -159,6 +180,8 @@ namespace Characters
         }
         public void OnAttack(InputAction.CallbackContext context)
         {
+            // ゴール後は一切の操作無効
+            if (isGoal) return; 
             if (context.started && enteredRecognitionAreas.Count > 0 && recognitionCount > -1)
             {
                 // 今入っている全ての認知エリアを順にチェック（重なり複数対応）
@@ -242,10 +265,7 @@ namespace Characters
             return hit.collider != null;
         }
 
-        private void Attack()
-        {
-            Debug.Log("Attack!");
-        }
+        
 
         // UIの色を更新（認知回数が減るたびに左から黒く）
         private void UpdateRecognitionUI()
@@ -288,6 +308,13 @@ namespace Characters
             ResetRecognitionUI();
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
+        private void UpdateKeyCountUI()
+        {
+            if (keyCountText != null)
+            {
+                keyCountText.text = keyCount.ToString();
+            }
+        }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
@@ -313,9 +340,66 @@ namespace Characters
                 canScale = true;
                 Debug.Log(canScale);
             }
-                
 
-           
+            // --- Explanation ---
+            if (other.CompareTag("Explanation"))
+            {
+                // 複数説明UIに対応
+                for (int i = 0; i < explanationUIs.Count; i++)
+                {
+                    if (explanationUIs[i] != null && !shownExplanationUIs.Contains(explanationUIs[i]))
+                    {
+                        explanationUIs[i].SetActive(true);
+                        shownExplanationUIs.Add(explanationUIs[i]);
+                    }
+                }
+            }
+
+            // --- Dead ---
+            if (other.CompareTag("Dead"))
+            {
+                ResetRecognitionsAndReload();
+            }
+
+            // --- Recovery ---
+            if (other.CompareTag("Recovery"))
+            {
+                recognitionCount = recognitionImages.Count;
+                ResetRecognitionUI();
+            }
+
+            // --- Goal ---
+            if (other.CompareTag("Goal"))
+            {
+                if (goalUI != null)
+                {
+                    goalUI.SetActive(true);
+                    isGoal = true;
+                }
+            }
+
+            // --- Keyタグ ---
+            if (other.CompareTag("Key"))
+            {
+                keyCount++;
+                UpdateKeyCountUI();
+                Destroy(other.gameObject); // 触れたオブジェクトを破壊
+            }
+
+            // --- Obstacleタグ ---
+            if (other.CompareTag("Obstacle"))
+            {
+                if (keyCount > 0)
+                {
+                    keyCount--;
+                    UpdateKeyCountUI();
+                    Destroy(other.gameObject); // 触れたオブジェクトを破壊
+                }
+                // 0のときは何もしない（破壊もなし）
+            }
+
+
+
         }
         private void OnTriggerExit2D(Collider2D other)
         {
@@ -335,9 +419,22 @@ namespace Characters
             {
                 enteredRecognitionAreas.Remove(other);
             }
+            // --- Explanation ---
+            if (other.CompareTag("Explanation"))
+            {
+                // エリアを出たら対応する説明UIを消す
+                foreach (var ui in explanationUIs)
+                {
+                    if (ui != null && shownExplanationUIs.Contains(ui))
+                    {
+                        ui.SetActive(false);
+                        shownExplanationUIs.Remove(ui);
+                    }
+                }
+            }
 
 
-            
+
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
@@ -348,6 +445,8 @@ namespace Characters
                 jumpCount = maxJumpCount;
             }
         }
+        // 必要なら鍵数取得用プロパティ
+        public int GetKeyCount() => keyCount;
 
         private void OnSpeedChanged(float newSpeed)
         {
@@ -355,6 +454,11 @@ namespace Characters
         }
     }
 }
+
+
+
+
+
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Enemy2DController : MonoBehaviour, IFilterableSpeed
