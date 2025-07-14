@@ -1,13 +1,14 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
 using SpeedControl;
 using Unity.VisualScripting;
 using DB;
 using System.Collections.Generic;
 using UnityEngine.UI; // Image用
 using UnityEngine.SceneManagement; // シーンリロード用
-using System.Linq;
+
 using TMPro;
 //using SpeedControl;
 
@@ -43,14 +44,20 @@ namespace Characters
         [Header("鍵UI")]
         [SerializeField] private TMP_Text keyCountText; // InspectorでTextMeshProを指定
 
+
+        
+
+        // 今表示しているUIのキャッシュ
+        private GameObject currentExplanationUI = null;
+
         private int recognitionCount;
         private List<GameObject> recognizedObjects = new List<GameObject>();
         // 今入っている認知エリア
         private List<Collider2D> enteredRecognitionAreas = new List<Collider2D>();
         // 説明エリア内に入っている説明UIのリスト
-        private HashSet<GameObject> shownExplanationUIs = new HashSet<GameObject>();
+        //private HashSet<GameObject> shownExplanationUIs = new HashSet<GameObject>();
         // 説明エリア
-        private List<GameObject> enteredExplanationAreas = new List<GameObject>();
+       // private List<GameObject> enteredExplanationAreas = new List<GameObject>();
 
         // その他管理
         private bool isGoal = false; // ゴール状態
@@ -75,13 +82,16 @@ namespace Characters
         private int jumpSpriteIndex = 0;
         private int sprintSpriteIndex = 0;
 
+        private DB_Explanation explanationDB;
         // recognition用
-       // private HashSet<GameObject> recognitionObjects = new HashSet<GameObject>();
+        // private HashSet<GameObject> recognitionObjects = new HashSet<GameObject>();
 
         public bool UseSkillControlledSpeed { get; set; } = true;
 
         private void Awake()
         {
+            explanationDB = DB_Explanation.Entity;
+
             rb = GetComponent<Rigidbody2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
             recognitionCount = recognitionImages.Count; // 通常3
@@ -193,6 +203,7 @@ namespace Characters
                         if (!child.gameObject.activeSelf && recognizedThisArea < maxRecognitionTargets && recognitionCount > -1)
                         {
                             child.gameObject.SetActive(true);
+                            
                             recognizedObjects.Add(child.gameObject);
                             UpdateRecognitionUI();
                             recognizedThisArea++;
@@ -344,13 +355,20 @@ namespace Characters
             // --- Explanation ---
             if (other.CompareTag("Explanation"))
             {
-                // 複数説明UIに対応
-                for (int i = 0; i < explanationUIs.Count; i++)
+                string areaPath = other.transform.GetHierarchyPath();
+                Debug.Log($"areaPath: {areaPath}");
+                var pair = explanationDB.ExplanationObjects.FirstOrDefault(x => x.AreaName == areaPath);
+                if (pair != null)
                 {
-                    if (explanationUIs[i] != null && !shownExplanationUIs.Contains(explanationUIs[i]))
+                    var uiObj = FindInactiveUI(pair.UIName);
+                    if (uiObj != null)
                     {
-                        explanationUIs[i].SetActive(true);
-                        shownExplanationUIs.Add(explanationUIs[i]);
+                        uiObj.SetActive(true);
+                        currentExplanationUI = uiObj;
+                    }
+                    else
+                    {
+                        Debug.Log("NoUI: " + pair.UIName);
                     }
                 }
             }
@@ -366,6 +384,7 @@ namespace Characters
             {
                 recognitionCount = recognitionImages.Count;
                 ResetRecognitionUI();
+                Destroy(other.gameObject);
             }
 
             // --- Goal ---
@@ -422,13 +441,13 @@ namespace Characters
             // --- Explanation ---
             if (other.CompareTag("Explanation"))
             {
-                // エリアを出たら対応する説明UIを消す
-                foreach (var ui in explanationUIs)
+                if (other.CompareTag("Explanation"))
                 {
-                    if (ui != null && shownExplanationUIs.Contains(ui))
+                    // 今表示中のUIがあれば非表示に
+                    if (currentExplanationUI != null)
                     {
-                        ui.SetActive(false);
-                        shownExplanationUIs.Remove(ui);
+                        currentExplanationUI.SetActive(false);
+                        currentExplanationUI = null;
                     }
                 }
             }
@@ -452,10 +471,34 @@ namespace Characters
         {
             // 速度変化時に即時反映したいロジックがあればここに
         }
+
+
+        GameObject FindInactiveUI(string fullPath)
+        {
+            foreach (var obj in Resources.FindObjectsOfTypeAll<GameObject>())
+            {
+                if (obj.transform.GetHierarchyPath() == fullPath)
+                    return obj;
+            }
+            return null;
+        }
+
     }
 }
 
-
+public static class TransformExtensions
+{
+    public static string GetHierarchyPath(this Transform t)
+    {
+        var path = t.name;
+        while (t.parent != null)
+        {
+            t = t.parent;
+            path = t.name + "/" + path;
+        }
+        return path;
+    }
+}
 
 
 
