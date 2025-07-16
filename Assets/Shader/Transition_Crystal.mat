@@ -29,11 +29,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Seed: 0
-    - _Size: 0
-    - _Smoothing: 0.5
-    - _Value: 0.723
+    - _Seed: 10
+    - _Size: 20
+    - _Smoothing: 0.441
+    - _Value: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.5254902, g: 0.8235294, b: 0.77254903, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

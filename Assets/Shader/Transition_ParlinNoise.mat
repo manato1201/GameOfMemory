@@ -43,11 +43,11 @@ Material:
     m_Floats:
     - <noninit>: 0
     - _EnableExternalAlpha: 0
-    - _Seed: 9.4
-    - _Size: 18.99
-    - _Smoothing: 0.388
-    - _Value: 0
+    - _Seed: 10
+    - _Size: 20
+    - _Smoothing: 0.00001
+    - _Value: 1
     m_Colors:
-    - _Color: {r: 0.08627451, g: 0.36862746, b: 0.5137255, a: 1}
+    - _Color: {r: 0.5254902, g: 0.8235294, b: 0.77254903, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

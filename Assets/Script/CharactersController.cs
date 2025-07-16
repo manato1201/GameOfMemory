@@ -44,13 +44,17 @@ namespace Characters
         [Header("鍵UI")]
         [SerializeField] private TMP_Text keyCountText; // InspectorでTextMeshProを指定
 
+        [SerializeField] private TransitionEffectController transitionController;
+        [SerializeField] private int transitionMaterialIndex = 0;
 
-        
+
 
         // 今表示しているUIのキャッシュ
         private GameObject currentExplanationUI = null;
 
         private int recognitionCount;
+        
+        //GCリスクが上がるらしい
         private List<GameObject> recognizedObjects = new List<GameObject>();
         // 今入っている認知エリア
         private List<Collider2D> enteredRecognitionAreas = new List<Collider2D>();
@@ -137,6 +141,12 @@ namespace Characters
         private void OnEnable()
         {
             inputActions.Enable();
+            if (transitionController != null)
+            {
+                transitionController.PlayTransitionIn();
+                transitionController.PlayTransitionOut(1);
+            }
+                
         }
         private void OnDisable()
         {
@@ -295,7 +305,8 @@ namespace Characters
             // 認知回数0でリセット
             if (recognitionCount <= -1)
             {
-                Invoke(nameof(ResetRecognitionsAndReload), 0.5f);
+                //Invoke(nameof(ResetRecognitionsAndReload), 0.5f);
+                ResetRecognitionsAndReload();
             }
         }
 
@@ -307,6 +318,11 @@ namespace Characters
             }
         }
 
+
+        
+
+
+
         private void ResetRecognitionsAndReload()
         {
             // 全てオフに戻す
@@ -317,7 +333,14 @@ namespace Characters
             recognizedObjects.Clear();
             recognitionCount = recognitionImages.Count;
             ResetRecognitionUI();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+           
+            
+                transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
+                {
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    // 新シーンで PlayTransitionOut() を呼ぶ
+                });
+            
         }
         private void UpdateKeyCountUI()
         {
@@ -400,6 +423,7 @@ namespace Characters
             // --- Keyタグ ---
             if (other.CompareTag("Key"))
             {
+                int oldCount = keyCount;
                 keyCount++;
                 UpdateKeyCountUI();
                 Destroy(other.gameObject); // 触れたオブジェクトを破壊
@@ -408,9 +432,11 @@ namespace Characters
             // --- Obstacleタグ ---
             if (other.CompareTag("Obstacle"))
             {
+                int oldCount = keyCount;
                 if (keyCount > 0)
                 {
                     keyCount--;
+                    
                     UpdateKeyCountUI();
                     Destroy(other.gameObject); // 触れたオブジェクトを破壊
                 }

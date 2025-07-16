@@ -43,7 +43,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Cutoff: 0.258
-    - _Div: 22.57
+    - _Div: 23.34
     - _EdgeSoftness: 0.006
     - _EnableExternalAlpha: 0
     - _Inverse: 1
@@ -53,11 +53,11 @@ Material:
     - _Seed: 0
     - _Smoothing: 0
     - _SquareCount: 5.13
-    - _Value: 0
-    - _Width: 0.271
+    - _Value: 1
+    - _Width: 0.201
     m_Colors:
-    - _Color: {r: 0, g: 0.8713031, b: 1, a: 1}
-    - _Dir: {r: 1, g: 1, b: 0, a: 0}
+    - _Color: {r: 0.5226504, g: 0.8207547, b: 0.7709414, a: 1}
+    - _Dir: {r: 2, g: 1, b: 0, a: 0}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _Size: {r: 1, g: 1, b: 0, a: 0}
