@@ -53,7 +53,7 @@ Material:
     - _Seed: 0
     - _Smoothing: 0
     - _SquareCount: 5.13
-    - _Value: 1
+    - _Value: 0
     - _Width: 0.201
     m_Colors:
     - _Color: {r: 0.5226504, g: 0.8207547, b: 0.7709414, a: 1}

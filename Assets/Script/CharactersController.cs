@@ -48,6 +48,9 @@ namespace Characters
         [SerializeField] private int transitionMaterialIndex = 0;
 
 
+        [Header("解説UI")]
+        [SerializeField] private GameObject DescribeUI;
+
 
         // 今表示しているUIのキャッシュ
         private GameObject currentExplanationUI = null;
@@ -58,10 +61,7 @@ namespace Characters
         private List<GameObject> recognizedObjects = new List<GameObject>();
         // 今入っている認知エリア
         private List<Collider2D> enteredRecognitionAreas = new List<Collider2D>();
-        // 説明エリア内に入っている説明UIのリスト
-        //private HashSet<GameObject> shownExplanationUIs = new HashSet<GameObject>();
-        // 説明エリア
-       // private List<GameObject> enteredExplanationAreas = new List<GameObject>();
+        
 
         // その他管理
         private bool isGoal = false; // ゴール状態
@@ -87,11 +87,20 @@ namespace Characters
         private int sprintSpriteIndex = 0;
 
         private DB_Explanation explanationDB;
-        // recognition用
-        // private HashSet<GameObject> recognitionObjects = new HashSet<GameObject>();
+        private bool inputLocked = true; // 最初は入力ロック
 
         public bool UseSkillControlledSpeed { get; set; } = true;
 
+
+        private void Start()
+        {
+            if (DescribeUI != null)
+            {
+                DescribeUI.SetActive(true);
+                inputLocked = true;
+
+            }
+        }
         private void Awake()
         {
             explanationDB = DB_Explanation.Entity;
@@ -108,6 +117,10 @@ namespace Characters
             {
                 goalUI.SetActive(false);
             }
+            
+
+
+
 
             var uiRoot = GameObject.Find("RecognitionUI");
             if (uiRoot != null)
@@ -156,6 +169,8 @@ namespace Characters
         // InputSystemのコールバック
         public void OnMove(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             moveInput = context.ReadValue<Vector2>();
 
             if (Mathf.Abs(moveInput.x) > 0.01f)
@@ -176,6 +191,8 @@ namespace Characters
         }
         public void OnJump(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             if (context.started)
             {
                 // ジャンプ回数制限
@@ -192,6 +209,8 @@ namespace Characters
         }
         public void OnSprint(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             isSprinting = context.ReadValueAsButton();
             // Sprint画像を交互に切り替え
             int spriteCount = imageDict.ContainsKey("Sprint") ? imageDict["Sprint"].Length : 1;
@@ -200,6 +219,8 @@ namespace Characters
         }
         public void OnAttack(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             // ゴール後は一切の操作無効
             if (isGoal) return; 
             if (context.started && enteredRecognitionAreas.Count > 0 && recognitionCount > -1)
@@ -244,6 +265,25 @@ namespace Characters
 
         private void FixedUpdate()
         {
+            // 説明UIが表示中 && 何か入力されたらUI非表示＆ロック解除
+            if (inputLocked && DescribeUI != null && DescribeUI.activeSelf)
+            {
+                if (
+                    Keyboard.current.anyKey.wasPressedThisFrame ||
+                    Mouse.current.leftButton.wasPressedThisFrame 
+                )
+                {
+                    transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
+                    {
+                        DescribeUI.SetActive(false);
+                        inputLocked = false;
+                        transitionController.PlayTransitionIn();
+                    });
+                   
+                }
+                return; // 入力ロック中はこれ以下のUpdate処理を全てスキップ
+            }
+
             float appliedPower = movePower * (isSprinting ? dashMultiplier : 1f) * speed.CurrentSpeed;
             float vx = moveInput.x * appliedPower;
             float vy = rb.linearVelocity.y;
