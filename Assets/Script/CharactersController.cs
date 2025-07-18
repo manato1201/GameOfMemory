@@ -1,13 +1,14 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
 using SpeedControl;
 using Unity.VisualScripting;
 using DB;
 using System.Collections.Generic;
 using UnityEngine.UI; // Image用
 using UnityEngine.SceneManagement; // シーンリロード用
-using System.Linq;
+
 using TMPro;
 //using SpeedControl;
 
@@ -43,14 +44,24 @@ namespace Characters
         [Header("鍵UI")]
         [SerializeField] private TMP_Text keyCountText; // InspectorでTextMeshProを指定
 
+        [SerializeField] private TransitionEffectController transitionController;
+        [SerializeField] private int transitionMaterialIndex = 0;
+
+
+        [Header("解説UI")]
+        [SerializeField] private GameObject DescribeUI;
+
+
+        // 今表示しているUIのキャッシュ
+        private GameObject currentExplanationUI = null;
+
         private int recognitionCount;
+        
+        //GCリスクが上がるらしい
         private List<GameObject> recognizedObjects = new List<GameObject>();
         // 今入っている認知エリア
         private List<Collider2D> enteredRecognitionAreas = new List<Collider2D>();
-        // 説明エリア内に入っている説明UIのリスト
-        private HashSet<GameObject> shownExplanationUIs = new HashSet<GameObject>();
-        // 説明エリア
-        private List<GameObject> enteredExplanationAreas = new List<GameObject>();
+        
 
         // その他管理
         private bool isGoal = false; // ゴール状態
@@ -75,13 +86,17 @@ namespace Characters
         private int jumpSpriteIndex = 0;
         private int sprintSpriteIndex = 0;
 
-        // recognition用
-       // private HashSet<GameObject> recognitionObjects = new HashSet<GameObject>();
+        private DB_Explanation explanationDB;
+        private bool inputLocked = true; // 最初は入力ロック
 
         public bool UseSkillControlledSpeed { get; set; } = true;
 
+
+       
         private void Awake()
         {
+            explanationDB = DB_Explanation.Entity;
+
             rb = GetComponent<Rigidbody2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
             recognitionCount = recognitionImages.Count; // 通常3
@@ -94,6 +109,16 @@ namespace Characters
             {
                 goalUI.SetActive(false);
             }
+
+            if (DescribeUI != null)
+            {
+                DescribeUI.SetActive(true);
+                inputLocked = true;
+
+            }
+
+
+
 
             var uiRoot = GameObject.Find("RecognitionUI");
             if (uiRoot != null)
@@ -127,6 +152,12 @@ namespace Characters
         private void OnEnable()
         {
             inputActions.Enable();
+            if (transitionController != null)
+            {
+                transitionController.PlayTransitionIn();
+                transitionController.PlayTransitionOut(1);
+            }
+                
         }
         private void OnDisable()
         {
@@ -136,6 +167,8 @@ namespace Characters
         // InputSystemのコールバック
         public void OnMove(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             moveInput = context.ReadValue<Vector2>();
 
             if (Mathf.Abs(moveInput.x) > 0.01f)
@@ -156,6 +189,8 @@ namespace Characters
         }
         public void OnJump(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             if (context.started)
             {
                 // ジャンプ回数制限
@@ -172,6 +207,8 @@ namespace Characters
         }
         public void OnSprint(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             isSprinting = context.ReadValueAsButton();
             // Sprint画像を交互に切り替え
             int spriteCount = imageDict.ContainsKey("Sprint") ? imageDict["Sprint"].Length : 1;
@@ -180,6 +217,8 @@ namespace Characters
         }
         public void OnAttack(InputAction.CallbackContext context)
         {
+            if (inputLocked) return;
+
             // ゴール後は一切の操作無効
             if (isGoal) return; 
             if (context.started && enteredRecognitionAreas.Count > 0 && recognitionCount > -1)
@@ -193,6 +232,7 @@ namespace Characters
                         if (!child.gameObject.activeSelf && recognizedThisArea < maxRecognitionTargets && recognitionCount > -1)
                         {
                             child.gameObject.SetActive(true);
+                            
                             recognizedObjects.Add(child.gameObject);
                             UpdateRecognitionUI();
                             recognizedThisArea++;
@@ -223,6 +263,25 @@ namespace Characters
 
         private void FixedUpdate()
         {
+            // 説明UIが表示中 && 何か入力されたらUI非表示＆ロック解除
+            if (inputLocked && DescribeUI != null && DescribeUI.activeSelf)
+            {
+                if (
+                   (Keyboard.current != null && Keyboard.current.anyKey.isPressed) ||
+                   (Mouse.current != null && Mouse.current.leftButton.isPressed)
+                )
+                {
+                    transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
+                    {
+                        DescribeUI.SetActive(false);
+                        inputLocked = false;
+                        transitionController.PlayTransitionIn();
+                    });
+                   
+                }
+                return; // 入力ロック中はこれ以下のUpdate処理を全てスキップ
+            }
+
             float appliedPower = movePower * (isSprinting ? dashMultiplier : 1f) * speed.CurrentSpeed;
             float vx = moveInput.x * appliedPower;
             float vy = rb.linearVelocity.y;
@@ -284,7 +343,8 @@ namespace Characters
             // 認知回数0でリセット
             if (recognitionCount <= -1)
             {
-                Invoke(nameof(ResetRecognitionsAndReload), 0.5f);
+                //Invoke(nameof(ResetRecognitionsAndReload), 0.5f);
+                ResetRecognitionsAndReload();
             }
         }
 
@@ -296,6 +356,11 @@ namespace Characters
             }
         }
 
+
+        
+
+
+
         private void ResetRecognitionsAndReload()
         {
             // 全てオフに戻す
@@ -306,7 +371,14 @@ namespace Characters
             recognizedObjects.Clear();
             recognitionCount = recognitionImages.Count;
             ResetRecognitionUI();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+           
+            
+                transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
+                {
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    // 新シーンで PlayTransitionOut() を呼ぶ
+                });
+            
         }
         private void UpdateKeyCountUI()
         {
@@ -344,13 +416,20 @@ namespace Characters
             // --- Explanation ---
             if (other.CompareTag("Explanation"))
             {
-                // 複数説明UIに対応
-                for (int i = 0; i < explanationUIs.Count; i++)
+                string areaPath = other.transform.GetHierarchyPath();
+                Debug.Log($"areaPath: {areaPath}");
+                var pair = explanationDB.ExplanationObjects.FirstOrDefault(x => x.AreaName == areaPath);
+                if (pair != null)
                 {
-                    if (explanationUIs[i] != null && !shownExplanationUIs.Contains(explanationUIs[i]))
+                    var uiObj = FindInactiveUI(pair.UIName);
+                    if (uiObj != null)
                     {
-                        explanationUIs[i].SetActive(true);
-                        shownExplanationUIs.Add(explanationUIs[i]);
+                        uiObj.SetActive(true);
+                        currentExplanationUI = uiObj;
+                    }
+                    else
+                    {
+                        Debug.Log("NoUI: " + pair.UIName);
                     }
                 }
             }
@@ -366,6 +445,7 @@ namespace Characters
             {
                 recognitionCount = recognitionImages.Count;
                 ResetRecognitionUI();
+                Destroy(other.gameObject);
             }
 
             // --- Goal ---
@@ -381,6 +461,7 @@ namespace Characters
             // --- Keyタグ ---
             if (other.CompareTag("Key"))
             {
+                int oldCount = keyCount;
                 keyCount++;
                 UpdateKeyCountUI();
                 Destroy(other.gameObject); // 触れたオブジェクトを破壊
@@ -389,9 +470,11 @@ namespace Characters
             // --- Obstacleタグ ---
             if (other.CompareTag("Obstacle"))
             {
+                int oldCount = keyCount;
                 if (keyCount > 0)
                 {
                     keyCount--;
+                    
                     UpdateKeyCountUI();
                     Destroy(other.gameObject); // 触れたオブジェクトを破壊
                 }
@@ -422,13 +505,13 @@ namespace Characters
             // --- Explanation ---
             if (other.CompareTag("Explanation"))
             {
-                // エリアを出たら対応する説明UIを消す
-                foreach (var ui in explanationUIs)
+                if (other.CompareTag("Explanation"))
                 {
-                    if (ui != null && shownExplanationUIs.Contains(ui))
+                    // 今表示中のUIがあれば非表示に
+                    if (currentExplanationUI != null)
                     {
-                        ui.SetActive(false);
-                        shownExplanationUIs.Remove(ui);
+                        currentExplanationUI.SetActive(false);
+                        currentExplanationUI = null;
                     }
                 }
             }
@@ -452,10 +535,34 @@ namespace Characters
         {
             // 速度変化時に即時反映したいロジックがあればここに
         }
+
+
+        GameObject FindInactiveUI(string fullPath)
+        {
+            foreach (var obj in Resources.FindObjectsOfTypeAll<GameObject>())
+            {
+                if (obj.transform.GetHierarchyPath() == fullPath)
+                    return obj;
+            }
+            return null;
+        }
+
     }
 }
 
-
+public static class TransformExtensions
+{
+    public static string GetHierarchyPath(this Transform t)
+    {
+        var path = t.name;
+        while (t.parent != null)
+        {
+            t = t.parent;
+            path = t.name + "/" + path;
+        }
+        return path;
+    }
+}
 
 
 

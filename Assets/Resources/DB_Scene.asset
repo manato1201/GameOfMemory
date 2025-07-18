@@ -9,11 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11da02d52440b9348ac440ca08657009, type: 3}
-  m_Name: DB_Recognition
+  m_Script: {fileID: 11500000, guid: 727c8c61f20018b48bb06a0d0dc051cc, type: 3}
+  m_Name: DB_Scene
   m_EditorClassIdentifier: 
-  RecognitionObjects:
-  - Name: stage1
-    OnGameObject: []
-    OffGameObject:
-    - {fileID: 0}
+  SceneName:
+  - Name: Title
+  - Name: Select
+  - Name: Stage0
+  - Name: Stage1
+  - Name: Stage2
+  - Name: Stage3
+  - Name: Stage4
+  - Name: Stage5
+  - Name: Stage6
+  - Name: Stage7
