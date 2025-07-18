@@ -92,15 +92,7 @@ namespace Characters
         public bool UseSkillControlledSpeed { get; set; } = true;
 
 
-        private void Start()
-        {
-            if (DescribeUI != null)
-            {
-                DescribeUI.SetActive(true);
-                inputLocked = true;
-
-            }
-        }
+       
         private void Awake()
         {
             explanationDB = DB_Explanation.Entity;
@@ -117,7 +109,13 @@ namespace Characters
             {
                 goalUI.SetActive(false);
             }
-            
+
+            if (DescribeUI != null)
+            {
+                DescribeUI.SetActive(true);
+                inputLocked = true;
+
+            }
 
 
 
@@ -269,8 +267,8 @@ namespace Characters
             if (inputLocked && DescribeUI != null && DescribeUI.activeSelf)
             {
                 if (
-                    Keyboard.current.anyKey.wasPressedThisFrame ||
-                    Mouse.current.leftButton.wasPressedThisFrame 
+                   (Keyboard.current != null && Keyboard.current.anyKey.isPressed) ||
+                   (Mouse.current != null && Mouse.current.leftButton.isPressed)
                 )
                 {
                     transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
