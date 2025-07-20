@@ -3425,7 +3425,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &718695113
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5539,7 +5539,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1262614167}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -8693,6 +8693,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: OperationExplanation2
       objectReference: {fileID: 0}
+    - target: {fileID: 2376629584973523510, guid: 1fce7c72216dbff429803a7eb48b2a50, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8336105455174146423, guid: 1fce7c72216dbff429803a7eb48b2a50, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -9058,6 +9062,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DeadExplanation
       objectReference: {fileID: 0}
+    - target: {fileID: 200302950763850963, guid: 42dab7b15834f874bbdd01829b81b0b4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7700825092868271052, guid: 42dab7b15834f874bbdd01829b81b0b4, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -9151,6 +9159,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1205897898}
     m_Modifications:
+    - target: {fileID: 862881009870547210, guid: 324a11c17c6e0a948934702c38102b16, type: 3}
+      propertyPath: m_fontColor.b
+      value: 0.045656204
+      objectReference: {fileID: 0}
+    - target: {fileID: 862881009870547210, guid: 324a11c17c6e0a948934702c38102b16, type: 3}
+      propertyPath: m_fontColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 862881009870547210, guid: 324a11c17c6e0a948934702c38102b16, type: 3}
+      propertyPath: m_fontColor.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5868208815981986190, guid: 324a11c17c6e0a948934702c38102b16, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -9542,6 +9562,10 @@ PrefabInstance:
     - target: {fileID: 8063472561661567635, guid: 61cc072276123464489b95b365b355b7, type: 3}
       propertyPath: m_Name
       value: OperationExplanation
+      objectReference: {fileID: 0}
+    - target: {fileID: 8063472561661567635, guid: 61cc072276123464489b95b365b355b7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

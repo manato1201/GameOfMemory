@@ -3602,7 +3602,7 @@ GameObject:
   - component: {fileID: 861447775}
   - component: {fileID: 861447777}
   m_Layer: 5
-  m_Name: Stage1
+  m_Name: Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4506,7 +4506,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u6B21\u306E\u30B9\u30C6\u30FC\u30B8\u3078"
+  m_text: "\u30BF\u30A4\u30C8\u30EB\u3078"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7da2461956018624fb8dc14aebc53f49, type: 2}
   m_sharedMaterial: {fileID: 2570748786922838111, guid: 7da2461956018624fb8dc14aebc53f49, type: 2}
