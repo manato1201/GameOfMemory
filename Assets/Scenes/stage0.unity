@@ -7676,6 +7676,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1205897898}
     m_Modifications:
+    - target: {fileID: 4364285146116151393, guid: 61cc072276123464489b95b365b355b7, type: 3}
+      propertyPath: m_text
+      value: "\u57FA\u672C\u64CD\u4F5C1\n\n\u79FB\u52D5\uFF1Aad or \u2190\u2192\n\u30C0\u30C3\u30B7\u30E5\uFF1AShift\n\u30B8\u30E3\u30F3\u30D7\uFF1Aspace\n"
+      objectReference: {fileID: 0}
     - target: {fileID: 7143461857756542424, guid: 61cc072276123464489b95b365b355b7, type: 3}
       propertyPath: m_Pivot.x
       value: 0
