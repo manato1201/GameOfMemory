@@ -3460,7 +3460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -6498,7 +6498,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 0.5100553
-  MaxDistance: 500
+  MaxDistance: 3
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -6582,7 +6582,7 @@ Transform:
   m_GameObject: {fileID: 535635261}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.23, y: 0, z: 0}
+  m_LocalPosition: {x: 3.23, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10726,7 +10726,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 0.50572824
-  MaxDistance: 500
+  MaxDistance: 3
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -10810,7 +10810,7 @@ Transform:
   m_GameObject: {fileID: 1004330819}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.7, y: 0, z: 0}
+  m_LocalPosition: {x: -3.7, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12184,7 +12184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -14189,7 +14189,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 573659152969759971, guid: 00ad64b995400a64c9037b7ed87ae76c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.8205647
+      value: 4.62
       objectReference: {fileID: 0}
     - target: {fileID: 573659152969759971, guid: 00ad64b995400a64c9037b7ed87ae76c, type: 3}
       propertyPath: m_LocalPosition.z
@@ -14240,6 +14240,10 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6428230874887770455, guid: 00ad64b995400a64c9037b7ed87ae76c, type: 3}
+      propertyPath: autoCreateSESources
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6428230874887770455, guid: 00ad64b995400a64c9037b7ed87ae76c, type: 3}
       propertyPath: seSources.Array.size
       value: 3
       objectReference: {fileID: 0}
@@ -14255,6 +14259,10 @@ PrefabInstance:
       propertyPath: 'seSources.Array.data[3]'
       value: 
       objectReference: {fileID: 535635263}
+    - target: {fileID: 7960861536408737013, guid: 00ad64b995400a64c9037b7ed87ae76c, type: 3}
+      propertyPath: MaxDistance
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -33,6 +33,9 @@ namespace Sound
         [SerializeField] private AudioSource bgmSource2;
         private bool isUsingFirstBGM = true;
 
+
+        [Header("SE AudioSourceの自動生成を使う場合はON")]
+        [SerializeField] private bool autoCreateSESources = true;
         [SerializeField] private List<AudioSource> seSources;
         [SerializeField] private int seSourcePoolSize = 5;
 
@@ -54,28 +57,39 @@ namespace Sound
                     soundDict.Add(s.name, s);
             }
 
-            //if (seSources == null || seSources.Count < seSourcePoolSize)
-            //{
-            //    seSources = new List<AudioSource>();
-            //    for (int i = 0; i < seSourcePoolSize; i++)
-            //    {
-            //        var src = gameObject.AddComponent<AudioSource>();
-            //        src.outputAudioMixerGroup = seGroup;
-            //        src.playOnAwake = false;
-            //        src.spatialBlend = 1f;
-            //        seSources.Add(src);
-            //    }
-            //}
+           // ここをboolで切り替え
+            if (autoCreateSESources)
+            {
+                seSources = new List<AudioSource>();
+                for (int i = 0; i < seSourcePoolSize; i++)
+                {
+                    var src = gameObject.AddComponent<AudioSource>();
+                    src.outputAudioMixerGroup = seGroup;
+                    src.playOnAwake = false;
+                    src.spatialBlend = 1f;
+                    seSources.Add(src);
+                }
+            }
+
+            else
+            {
+                // InspectorでセットされているseSourcesを使う（初期化しない）
+                // 数が足りなければ警告
+                if (seSources == null || seSources.Count == 0)
+                {
+                    Debug.LogWarning("SE AudioSourceの自動生成OFFですが、seSourcesリストが空です。InspectorでAudioSourceを割り当ててください。");
+                }
+                else if (seSources.Count < seSourcePoolSize)
+                {
+                    Debug.LogWarning("SE AudioSourceリストの数がseSourcePoolSize未満です。必要に応じて追加してください。");
+                }
+            }
         }
 
         public void PlayBGM(string name, bool loop = true, float fadeDuration = 1f)
         {
             if (!soundDict.TryGetValue(name, out var data) || data.type != SoundType.BGM) return;
-            //if (!soundDict.TryGetValue(name, out var data))
-            //{
-            //    Debug.LogWarning($"SoundData に {name} が見つかりません");
-            //    return;
-            //}
+           
             if (data.clip == null)
             {
                 Debug.LogWarning($"{name} に対応する AudioClip が null です！");
@@ -152,7 +166,7 @@ namespace Sound
                     src.outputAudioMixerGroup = seGroup;
                     src.pitch = pitch; // ←ピッチ設定
                     src.Play();
-                    Debug.Log("SE起動 pitch=" + pitch);
+                    //Debug.Log("SE起動 pitch=" + pitch);
                     return;
                 }
             }

@@ -157,7 +157,7 @@ namespace Characters
             {
                 
                 transitionController.PlayTransitionIn();
-                SoundManager.Instance.StopAllSE();
+            
                 transitionController.PlayTransitionOut(1);
             }
                 
@@ -276,7 +276,7 @@ namespace Characters
                    (Mouse.current != null && Mouse.current.leftButton.isPressed)
                 )
                 {
-                    SoundManager.Instance.PlaySE("OK", volume: 1.0f);
+                    SoundManager.Instance.PlaySE("OK");
                     transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
                     {
                         DescribeUI.SetActive(false);
@@ -309,7 +309,7 @@ namespace Characters
             // ジャンプ処理
             if (jumpRequested && IsGrounded())
             {
-                SoundManager.Instance.PlaySE("Jump", volume: 1.0f);
+                SoundManager.Instance.PlaySE("Jump");
                 rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
                 jumpRequested = false;
             }
@@ -317,7 +317,7 @@ namespace Characters
 
         private void ScaleCharacter(bool enlarge)
         {
-            SoundManager.Instance.PlaySE("Scale", volume: 1.0f);
+            SoundManager.Instance.PlaySE("Scale");
             float current = transform.localScale.x;
             float target = enlarge
                 ? Mathf.Min(current + scaleStep, maxScale)
@@ -371,7 +371,7 @@ namespace Characters
 
         private void ResetRecognitionsAndReload()
         {
-            SoundManager.Instance.PlaySE("Dead", volume: 1.0f);
+            SoundManager.Instance.PlaySE("Dead");
             // 全てオフに戻す
             foreach (var obj in recognizedObjects)
             {
@@ -405,13 +405,13 @@ namespace Characters
             {
                 if (!enteredRecognitionAreas.Contains(other))
                 {
-                    SoundManager.Instance.PlaySE("Recognition", volume: 1.0f);
+                    SoundManager.Instance.PlaySE("Recognition");
                     enteredRecognitionAreas.Add(other);
                 }
             }
             if (other.CompareTag("Incorrect"))
             {
-                SoundManager.Instance.PlaySE("Incorrect", volume: 1.0f);
+                SoundManager.Instance.PlaySE("Incorrect");
 
             }
 
@@ -431,7 +431,7 @@ namespace Characters
             // --- Explanation ---
             if (other.CompareTag("Explanation"))
             {
-                SoundManager.Instance.PlaySE("Explanation", volume: 1.0f);
+                SoundManager.Instance.PlaySE("Explanation");
                 string areaPath = other.transform.GetHierarchyPath();
                 Debug.Log($"areaPath: {areaPath}");
                 var pair = explanationDB.ExplanationObjects.FirstOrDefault(x => x.AreaName == areaPath);
@@ -461,7 +461,7 @@ namespace Characters
             // --- Recovery ---
             if (other.CompareTag("Recovery"))
             {
-                SoundManager.Instance.PlaySE("Recovery", volume: 1.0f);
+                SoundManager.Instance.PlaySE("Recovery");
                 recognitionCount = recognitionImages.Count;
                 ResetRecognitionUI();
                 Destroy(other.gameObject);
@@ -472,7 +472,7 @@ namespace Characters
             {
                 if (goalUI != null)
                 {
-                    SoundManager.Instance.PlaySE("correct", volume: 1.0f);
+                    SoundManager.Instance.PlaySE("correct");
                     goalUI.SetActive(true);
                     isGoal = true;
                 }
@@ -481,7 +481,7 @@ namespace Characters
             // --- Keyタグ ---
             if (other.CompareTag("Key"))
             {
-                SoundManager.Instance.PlaySE("Key", volume: 1.0f);
+                SoundManager.Instance.PlaySE("Key");
                 int oldCount = keyCount;
                 keyCount++;
                 UpdateKeyCountUI();
@@ -494,7 +494,7 @@ namespace Characters
                 int oldCount = keyCount;
                 if (keyCount > 0)
                 {
-                    SoundManager.Instance.PlaySE("Obstacle", volume: 1.0f);
+                    SoundManager.Instance.PlaySE("Obstacle");
                     keyCount--;
                     
                     UpdateKeyCountUI();
