@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Sound;
+using UnityEngine;
 
 namespace Stage
 {
@@ -25,6 +26,7 @@ namespace Stage
             // 反転チェック
             if (direction > 0 && value >= max)
             {
+                
                 value = max;
                 direction *= -1f;
                 if (showOnMin) showOnMin.SetActive(false);
@@ -32,6 +34,7 @@ namespace Stage
             }
             else if (direction < 0 && value <= min)
             {
+                
                 value = min;
                 direction *= -1f;
                 if (showOnMin) showOnMin.SetActive(true);

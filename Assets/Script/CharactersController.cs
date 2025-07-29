@@ -10,6 +10,7 @@ using UnityEngine.UI; // Image用
 using UnityEngine.SceneManagement; // シーンリロード用
 
 using TMPro;
+using Sound;
 //using SpeedControl;
 
 namespace Characters
@@ -154,7 +155,9 @@ namespace Characters
             inputActions.Enable();
             if (transitionController != null)
             {
+                
                 transitionController.PlayTransitionIn();
+            
                 transitionController.PlayTransitionOut(1);
             }
                 
@@ -196,6 +199,7 @@ namespace Characters
                 // ジャンプ回数制限
                 if (jumpCount > 0)
                 {
+                   
                     jumpRequested = true;
                     jumpCount--;
                     // Jump画像を交互に切り替え
@@ -266,11 +270,13 @@ namespace Characters
             // 説明UIが表示中 && 何か入力されたらUI非表示＆ロック解除
             if (inputLocked && DescribeUI != null && DescribeUI.activeSelf)
             {
+               
                 if (
                    (Keyboard.current != null && Keyboard.current.anyKey.isPressed) ||
                    (Mouse.current != null && Mouse.current.leftButton.isPressed)
                 )
                 {
+                    SoundManager.Instance.PlaySE("OK");
                     transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
                     {
                         DescribeUI.SetActive(false);
@@ -303,6 +309,7 @@ namespace Characters
             // ジャンプ処理
             if (jumpRequested && IsGrounded())
             {
+                SoundManager.Instance.PlaySE("Jump");
                 rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
                 jumpRequested = false;
             }
@@ -310,6 +317,7 @@ namespace Characters
 
         private void ScaleCharacter(bool enlarge)
         {
+            SoundManager.Instance.PlaySE("Scale");
             float current = transform.localScale.x;
             float target = enlarge
                 ? Mathf.Min(current + scaleStep, maxScale)
@@ -363,6 +371,7 @@ namespace Characters
 
         private void ResetRecognitionsAndReload()
         {
+            SoundManager.Instance.PlaySE("Dead");
             // 全てオフに戻す
             foreach (var obj in recognizedObjects)
             {
@@ -371,9 +380,10 @@ namespace Characters
             recognizedObjects.Clear();
             recognitionCount = recognitionImages.Count;
             ResetRecognitionUI();
-           
             
-                transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
+
+
+            transitionController.PlayTransitionOut(transitionMaterialIndex, () =>
                 {
                     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                     // 新シーンで PlayTransitionOut() を呼ぶ
@@ -395,10 +405,15 @@ namespace Characters
             {
                 if (!enteredRecognitionAreas.Contains(other))
                 {
+                    SoundManager.Instance.PlaySE("Recognition");
                     enteredRecognitionAreas.Add(other);
                 }
             }
+            if (other.CompareTag("Incorrect"))
+            {
+                SoundManager.Instance.PlaySE("Incorrect");
 
+            }
 
             if (other.CompareTag("VerticalArea"))
             {
@@ -416,6 +431,7 @@ namespace Characters
             // --- Explanation ---
             if (other.CompareTag("Explanation"))
             {
+                SoundManager.Instance.PlaySE("Explanation");
                 string areaPath = other.transform.GetHierarchyPath();
                 Debug.Log($"areaPath: {areaPath}");
                 var pair = explanationDB.ExplanationObjects.FirstOrDefault(x => x.AreaName == areaPath);
@@ -424,6 +440,7 @@ namespace Characters
                     var uiObj = FindInactiveUI(pair.UIName);
                     if (uiObj != null)
                     {
+                        
                         uiObj.SetActive(true);
                         currentExplanationUI = uiObj;
                     }
@@ -437,12 +454,14 @@ namespace Characters
             // --- Dead ---
             if (other.CompareTag("Dead"))
             {
+                
                 ResetRecognitionsAndReload();
             }
 
             // --- Recovery ---
             if (other.CompareTag("Recovery"))
             {
+                SoundManager.Instance.PlaySE("Recovery");
                 recognitionCount = recognitionImages.Count;
                 ResetRecognitionUI();
                 Destroy(other.gameObject);
@@ -453,6 +472,7 @@ namespace Characters
             {
                 if (goalUI != null)
                 {
+                    SoundManager.Instance.PlaySE("correct");
                     goalUI.SetActive(true);
                     isGoal = true;
                 }
@@ -461,6 +481,7 @@ namespace Characters
             // --- Keyタグ ---
             if (other.CompareTag("Key"))
             {
+                SoundManager.Instance.PlaySE("Key");
                 int oldCount = keyCount;
                 keyCount++;
                 UpdateKeyCountUI();
@@ -473,6 +494,7 @@ namespace Characters
                 int oldCount = keyCount;
                 if (keyCount > 0)
                 {
+                    SoundManager.Instance.PlaySE("Obstacle");
                     keyCount--;
                     
                     UpdateKeyCountUI();
