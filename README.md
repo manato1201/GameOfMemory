@@ -1,4 +1,4 @@
-# GameOfMemory
+# UketorikataToraekata
 錯視・錯聴をテーマにした2Dアクションゲームです
 イヤホンの使用推奨
 最初にマウスを使います
