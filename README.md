@@ -6,5 +6,6 @@
 最初にマウスを使います
 
 詳しい操作方法はチュートリアルステージで行ってください
+
 デモプレイ先
 https://unityroom.com/games/uketorikatatoraekata
